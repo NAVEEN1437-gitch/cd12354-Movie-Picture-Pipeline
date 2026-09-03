@@ -13,6 +13,7 @@ env:
   AWS_REGION: us-east-1
   EKS_CLUSTER_NAME: cluster
   ECR_REPOSITORY: 780594067794.dkr.ecr.us-east-1.amazonaws.com/frontend
+  REACT_APP_MOVIE_API_URL: http://abb756065e3c44959af6775d0d8eac40-468922809.us-east-1.elb.amazonaws.com
 
 jobs:
   lint:
@@ -90,12 +91,12 @@ jobs:
       - name: Build application
         run: npm run build
         env:
-          REACT_APP_MOVIE_API_URL: http://localhost:5000
+          REACT_APP_MOVIE_API_URL: ${{ env.REACT_APP_MOVIE_API_URL }}
 
       - name: Build Docker image
         run: |
           docker build \
-            --build-arg REACT_APP_MOVIE_API_URL=http://localhost:5000 \
+            --build-arg REACT_APP_MOVIE_API_URL=${{ env.REACT_APP_MOVIE_API_URL }} \
             --tag frontend:${GITHUB_SHA} \
             .
 
