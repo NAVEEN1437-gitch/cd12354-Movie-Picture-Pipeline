@@ -327,3 +327,34 @@ data "aws_iam_policy_document" "github_policy" {
     resources = ["*"]
   }
 }
+
+data "aws_iam_role" "test_eks_node_role" {
+  name = "test-eks-node-role"
+}
+
+# Replacement node group for EKS worker nodes
+resource "aws_eks_node_group" "replacement" {
+  node_group_name = "udacity-replacement"
+  cluster_name    = aws_eks_cluster.main.name
+  version         = aws_eks_cluster.main.version
+  node_role_arn   = data.aws_iam_role.test_eks_node_role.arn
+
+  subnet_ids = [
+    var.enable_private == true
+    ? aws_subnet.private_subnet.id
+    : aws_subnet.public_subnet.id
+  ]
+
+  release_version = nonsensitive(data.aws_ssm_parameter.eks_ami_release_version.value)
+  instance_types  = ["t3.small"]
+
+  scaling_config {
+    desired_size = 1
+    max_size     = 1
+    min_size     = 1
+  }
+
+  lifecycle {
+    ignore_changes = [scaling_config[0].desired_size]
+  }
+}
